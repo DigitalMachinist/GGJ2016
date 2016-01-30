@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
     public FoldableEvent<Player> PlayerReady;
     public FoldableEvent<Player> PlayerNotReady;
 
-    public Dictionary<ColourChannel, ColourStats> ColourChannels { get; private set; }
+    public ColourEffect ColourEffect { get; private set; }
     public List<Node> Nodes { get; private set; }
     public Queue<Node> PendingNodes { get; private set; }
     public GMState State { get; private set; }
@@ -90,6 +90,19 @@ public class GameManager : MonoBehaviour
     {
         get { return Players.Where( player => player.IsReady ); }
     }
+    
+    public ColourBenefit GetColourBenefit( Color sampledColour )
+    {
+        // Use the values of each colour with respect to the sum of all colour channels (i.e. 
+        // the fraction that each channel contributes to the final colour) as the input to the 
+        // animation curves that compute the coefficients for colour benefit.
+        var sum = sampledColour.r + sampledColour.g + sampledColour.b;
+        
+        var rCoeff = ColourEffect.RegenRateWrtRed.Evaluate( sampledColour.r / sum );
+        var gCoeff = ColourEffect.ActionRateWrtGreen.Evaluate( sampledColour.g / sum );
+        var bCoeff = ColourEffect.EnergyRateWrtBlue.Evaluate( sampledColour.b / sum );
+        return new ColourBenefit( rCoeff, gCoeff, bCoeff );
+    }
 
     void Awake()
     {
@@ -115,12 +128,7 @@ public class GameManager : MonoBehaviour
     {
         // Make each of the ColourStats easily accessible.
         var channels = transform.FindChild( "Colour Channels" );
-        ColourChannels = new Dictionary<ColourChannel, ColourStats>()
-        {
-            { ColourChannel.Red, channels.FindChild( "Red Channel" ).GetComponent<ColourStats>() },
-            { ColourChannel.Green, channels.FindChild( "Green Channel" ).GetComponent<ColourStats>() },
-            { ColourChannel.Blue, channels.FindChild( "Blue Channel" ).GetComponent<ColourStats>() }
-        };
+        ColourEffect = FindObjectOfType<ColourEffect>();
 
         // The list of pending nodes is empty for now. Eventually players will join the game and 
         // their initial turns will be queued here.

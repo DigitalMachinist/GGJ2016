@@ -108,9 +108,9 @@ public class ColourSelectState : GameState
         // Make sure this node ONLY has the Create Node action. Select that action now so that 
         // it will be the one controller by the owning player.
         node.Actions.Clear();
-        var createNodeAction = new CreateNodeAction();
-        node.Actions.Add( createNodeAction );
-        node.SelectedAction = createNodeAction;
+        //var createNodeAction = new CreateNodeAction();
+        //node.Actions.Add( createNodeAction );
+        //node.SelectedAction = createNodeAction;
     }
 
     void OnPlayerQuit( Player player )

@@ -13,6 +13,10 @@ public class Player : MonoBehaviour
 
     public GameManager GM { get; private set; }
 
+    //public ColourBenefit ColourBenefit
+    //{
+    //    get { return }
+    //}
     public IEnumerable<Node> Nodes
     {
         get { return GM.Nodes.Where( node => node.Player == this ); }
@@ -36,7 +40,7 @@ public class Player : MonoBehaviour
 
     void CreateNode()
     {
-        GM.FinalizePlaceNode( this, new Vector3( Random.Range( 27f, 133f ), 0f, Random.Range( 15f, 75f ) ) );
+        GM.InstantiateNode( GM.NodePrefab, this, new Vector3( Random.Range( 27f, 133f ), 0f, Random.Range( 15f, 75f ) ), Quaternion.identity );
     }
 
     void NextNode()
