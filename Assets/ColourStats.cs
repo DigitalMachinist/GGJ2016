@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 
-public class ColourChannel : MonoBehaviour
+public class ColourStats : MonoBehaviour
 {
+    public ColourChannel Colour;
     public AnimationCurve RegenRateWrtIntensity;
     public AnimationCurve ActionRateWrtIntensity;
     public AnimationCurve EnergyRateWrtIntensity;
