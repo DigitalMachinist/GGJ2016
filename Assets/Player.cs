@@ -5,6 +5,7 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     public bool IsEnabled = false;
+    public bool IsReady = false;
     public int Number = 1;
     public Color Colour = Color.black;
     public Xbox360Gamepad Gamepad;
@@ -35,7 +36,7 @@ public class Player : MonoBehaviour
 
     void CreateNode()
     {
-        GM.SpawnNode( this, new Vector3( Random.Range( 27f, 133f ), 0f, Random.Range( 15f, 75f ) ) );
+        GM.FinalizePlaceNode( this, new Vector3( Random.Range( 27f, 133f ), 0f, Random.Range( 15f, 75f ) ) );
     }
 
     void NextNode()

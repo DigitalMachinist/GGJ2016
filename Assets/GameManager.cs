@@ -50,7 +50,11 @@ public class GameManager : MonoBehaviour
 
     [Header( "Events" )]
     public FoldablePromise Ready;
-    
+    public FoldableEvent<Player> PlayerJoined;
+    public FoldableEvent<Player> PlayerQuit;
+    public FoldableEvent<Player> PlayerReady;
+    public FoldableEvent<Player> PlayerNotReady;
+
     public Dictionary<ColourChannel, ColourStats> ColourChannels { get; private set; }
     public List<Node> Nodes { get; private set; }
     public Queue<Node> PendingNodes { get; private set; }
@@ -69,6 +73,22 @@ public class GameManager : MonoBehaviour
     public Player Player1
     {
         get { return Players.Single( player => player.Number == 1 ); }
+    }
+    public Player Player2
+    {
+        get { return Players.Single( player => player.Number == 2 ); }
+    }
+    public Player Player3
+    {
+        get { return Players.Single( player => player.Number == 3 ); }
+    }
+    public Player Player4
+    {
+        get { return Players.Single( player => player.Number == 4 ); }
+    }
+    public IEnumerable<Player> ReadyPlayers
+    {
+        get { return Players.Where( player => player.IsReady ); }
     }
 
     void Awake()
@@ -148,7 +168,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void Join( Player player )
+    public void JoinPlayer( Player player )
     {
         // If player has already joined, don't redo that.
         if ( ( player == null || player.IsEnabled ) )
@@ -156,22 +176,26 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        PlayerJoined.Invoke( player );
+
         // Set up the player.
         player.IsEnabled = true;
         player.Colour = new Color( Random.Range( 0f, 1f ), Random.Range( 0f, 1f ), Random.Range( 0f, 1f ) );
-        var xRandom = Random.Range( Bounds.min.x, Bounds.max.x );
-        var zRandom = Random.Range( Bounds.min.z, Bounds.max.z );
-        SpawnNode( player, new Vector3( xRandom, 0f, zRandom ) );
+
+        //var xRandom = Random.Range( Bounds.min.x, Bounds.max.x );
+        //var zRandom = Random.Range( Bounds.min.z, Bounds.max.z );
+        //StartPlaceNode( player, new Vector3( xRandom, 0f, zRandom ) );
+        //FinalizePlaceNode( player, new Vector3( xRandom, 0f, zRandom ) );
 
         // Pressing A no longer joins, but pressing B quits (but not if they are Player 1).
         if ( player != Player1 )
         {
             player.Gamepad.AButton.Pressed.RemoveAllListeners();
-            player.Gamepad.BButton.Pressed.AddListener( () => Quit( player ) );
+            player.Gamepad.BButton.Pressed.AddListener( () => QuitPlayer( player ) );
         }
     }
 
-    public void Quit( Player player, bool force = false )
+    public void QuitPlayer( Player player, bool force = false )
     {
         // Player 1 can't quit.
         if ( !force && ( player == null || player == Player1 ) )
@@ -179,9 +203,13 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Reset the player and clean up their first node.
+        // Reset the player.
         player.IsEnabled = false;
         player.Colour = Color.black;
+
+        // Clean up all of the player's nodes.
+        // This should happen here instead of in an event handler because this should give me a  
+        // way to allow players to quite the game at any time -- even during an ongoing game.
         foreach ( var node in player.Nodes )
         {
             Nodes.Remove( node );
@@ -191,38 +219,76 @@ public class GameManager : MonoBehaviour
             .ToList()
             .ForEach( node => Destroy( node.gameObject ) );
 
+        PlayerQuit.Invoke( player );
+
         // Allow player to rejoin by pressing A, as before.
-        player.Gamepad.AButton.Pressed.AddListener( () => Join( player ) );
+        player.Gamepad.AButton.Pressed.AddListener( () => JoinPlayer( player ) );
         player.Gamepad.BButton.Pressed.RemoveAllListeners();
     }
 
-    public void QuitAll()
+    public void QuitAllPlayers()
     {
+        // Yes, this even quits player 1. They should be rejoined in code after this.
         foreach ( var player in EnabledPlayers )
         {
-            Quit( player );
+            QuitPlayer( player );
         }
     }
 
-    public bool SpawnNode( Player player, Vector3 position, bool simulate = false )
+    public void ReadyPlayer( Player player )
     {
-        if ( !Bounds.Contains( position ) )
+        player.IsReady = true;
+        PlayerReady.Invoke( player );
+    }
+
+    public void NotReadyPlayer( Player player )
+    {
+        player.IsReady = false;
+        PlayerNotReady.Invoke( player );
+    }
+
+    public Node InstantiateNode( Node nodePrefab, Player player, Vector3 position, Quaternion rotation )
+    {
+
+        var node = (Node)Instantiate( nodePrefab, position, rotation );
+
+        // Set the new node's player equal to the creator node's player.
+        node.Player = player;
+        node.name = "Node (Player " + player.Number + ")";
+
+        // This may become part of the Node's animation controller eventually.
+        node.GetComponent<Renderer>().material.color = player.Colour;
+
+        return node;
+    }
+
+    public void StartPlaceNode( Node creator, float distance )
+    {
+        // This starts the node placement process --> FinalizePlaceNode() finishes it.
+        // Create the new node <distance> units forward from the creator node, giving the new node 
+        // a random rotation. Parent the new node to the creator node.
+        var offset = distance * creator.transform.TransformDirection( Vector3.forward );
+        var position = creator.transform.position + offset;
+        var rotation = Quaternion.Euler( 0f, Random.Range( 0f, 360f ), 0f );
+        var node = InstantiateNode( NodePrefab, creator.Player, position, rotation );
+        node.transform.parent = creator.transform;
+    }
+
+    public bool FinalizePlaceNode( Node node )
+    {
+        if ( !Bounds.Contains( node.transform.position ) )
         {
+            // The node can't be placed out of bounds.
             return false;
         }
-
-        if ( !simulate )
-        {
-            var nodesContainer = GameObject.FindGameObjectWithTag( "NodesContainer" );
-            var node = (Node)Instantiate( NodePrefab, position, Quaternion.identity );
-            node.transform.parent = nodesContainer.transform;
-            node.Player = player;
-            node.name = "Node (Player " + player.Number + ")";
-            node.GetComponent<Renderer>().material.color = player.Colour;
-
-            Nodes.Add( node );
-            player.SelectedNode = node;
-        }
+        
+        // Parent the new node to the nodes collection now that it is a real thing. Add it to the 
+        // nodes collection so it can be queried by actions and set it to be the player's currently 
+        // selected node.
+        var nodesContainer = GameObject.FindGameObjectWithTag( "NodesContainer" );
+        node.transform.parent = nodesContainer.transform;
+        Nodes.Add( node );
+        node.Player.SelectedNode = node;
 
         return true;
     }

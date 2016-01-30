@@ -26,6 +26,11 @@ public class FoldableEvent
     {
         Event.RemoveListener( action );
     }
+
+    public void RemoveAllListeners()
+    {
+        Event.RemoveAllListeners();
+    }
 }
 
 
@@ -52,6 +57,11 @@ public class FoldableEvent<TArg0>
     public virtual void RemoveListener( UnityAction<TArg0> action )
     {
         Event.RemoveListener( action );
+    }
+
+    public void RemoveAllListeners()
+    {
+        Event.RemoveAllListeners();
     }
 }
 
@@ -80,6 +90,11 @@ public class FoldableEvent<TArg0, TArg1>
     {
         Event.RemoveListener( action );
     }
+
+    public void RemoveAllListeners()
+    {
+        Event.RemoveAllListeners();
+    }
 }
 
 
@@ -107,6 +122,11 @@ public class FoldableEvent<TArg0, TArg1, TArg2>
     {
         Event.RemoveListener( action );
     }
+
+    public void RemoveAllListeners()
+    {
+        Event.RemoveAllListeners();
+    }
 }
 
 
@@ -133,5 +153,10 @@ public class FoldableEvent<TArg0, TArg1, TArg2, TArg3>
     public virtual void RemoveListener( UnityAction<TArg0, TArg1, TArg2, TArg3> action )
     {
         Event.RemoveListener( action );
+    }
+
+    public void RemoveAllListeners()
+    {
+        Event.RemoveAllListeners();
     }
 }
