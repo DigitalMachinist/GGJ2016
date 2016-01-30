@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class Node : MonoBehaviour
 {
     public Player Player;
-    public float HP;
+    public int HP;
     public int Level;
     public NodeAction SelectedAction;
     public List<NodeAction> Actions;

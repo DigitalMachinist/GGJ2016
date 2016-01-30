@@ -17,9 +17,16 @@ public class ColourSelectState : GameState
 
         // Show player select screen and move the camera to the special colour select play area.
         GameObject.FindGameObjectWithTag( "ColourSelectScreen" ).SetActive( true );
-        var center = new Vector3( -80f, 0f, 47f );
+        var center = new Vector3( -80f, 0f, 45f );
         GM.Bounds = new Bounds( center, new Vector3( 0f, 0f, 0f ) );
         GM.Cursor.transform.position = center;
+
+        // Listen for all player join, quit, ready and not ready events.
+        // Note: This needs to come before auto-joining players 1 and 2.
+        GM.PlayerJoined.AddListener( OnPlayerJoined );
+        GM.PlayerQuit.AddListener( OnPlayerQuit );
+        GM.PlayerReady.AddListener( OnPlayerReady );
+        GM.PlayerNotReady.AddListener( OnPlayerNotReady );
 
         // Players 1 and 2 join automatically.
         // This will result in their control context being set by OnPlayerJoined.
@@ -27,20 +34,19 @@ public class ColourSelectState : GameState
             .Players
             .Where( player => player.Number <= 2 )
             .ToList()
-            .ForEach( GM.JoinPlayer );
+            .ForEach( player => {
+                SetControlsJoined( player );
+                GM.JoinPlayer( player );
+            } );
 
         // Players 3 and 4 can join the game by pressing A.
         GM
             .Players
             .Where( player => player.Number > 2 )
             .ToList()
-            .ForEach( SetControlsNotJoined );
-
-        // Listen for all player join, quit, ready and not ready events.
-        GM.PlayerJoined.AddListener( OnPlayerJoined );
-        GM.PlayerQuit.AddListener( OnPlayerQuit );
-        GM.PlayerJoined.AddListener( OnPlayerReady );
-        GM.PlayerQuit.AddListener( OnPlayerNotReady );
+            .ForEach( player => {
+                SetControlsNotJoined( player );
+            } );
     }
 
     public override void OnExit()
@@ -60,8 +66,8 @@ public class ColourSelectState : GameState
         // Stop listening for all player events.
         GM.PlayerJoined.RemoveAllListeners();
         GM.PlayerQuit.RemoveAllListeners();
-        GM.PlayerJoined.RemoveAllListeners();
-        GM.PlayerQuit.RemoveAllListeners();
+        GM.PlayerReady.RemoveAllListeners();
+        GM.PlayerNotReady.RemoveAllListeners();
     }
 
     public override void Update()
@@ -74,13 +80,23 @@ public class ColourSelectState : GameState
             .ToList()
             .ForEach( player => {
 
-                Vector3 rAnalogDirection = new Vector3(
-                    player.Gamepad.GetAxis( Xbox360GamepadAxis.RAnalogX ),
+                if ( player.SelectedNode == null )
+                {
+                    return;
+                }
+
+                Vector3 direction = new Vector3(
+                    player.Gamepad.GetAxis( Xbox360GamepadAxis.LAnalogX ),
                     0f,
-                    player.Gamepad.GetAxis( Xbox360GamepadAxis.RAnalogY )
+                    player.Gamepad.GetAxis( Xbox360GamepadAxis.LAnalogY )
                 );
+                if ( direction == Vector3.zero )
+                {
+                    direction = Vector3.forward;
+                }
+
                 var nodeTransform = player.SelectedNode.transform;
-                nodeTransform.LookAt( nodeTransform.position + rAnalogDirection, Vector3.up );
+                nodeTransform.LookAt( nodeTransform.position + direction, Vector3.up );
                 player.Colour = nodeTransform.GetComponent<ColorSampler>().SampledColor;
 
             } );
@@ -89,9 +105,6 @@ public class ColourSelectState : GameState
     void OnPlayerJoined( Player player )
     {
         SetControlsJoined( player );
-
-        GM.PlayerQuit.RemoveListener( OnPlayerJoined );
-        GM.PlayerQuit.AddListener( OnPlayerQuit );
 
         // Create this player's node at the center of the play area with a random rotation.
         var position = GM.Bounds.center;
@@ -108,9 +121,9 @@ public class ColourSelectState : GameState
         // Make sure this node ONLY has the Create Node action. Select that action now so that 
         // it will be the one controller by the owning player.
         node.Actions.Clear();
-        //var createNodeAction = new CreateNodeAction();
-        //node.Actions.Add( createNodeAction );
-        //node.SelectedAction = createNodeAction;
+        var createNodeAction = NodeActionFactory.GetCreateNodeAction();
+        node.Actions.Add( createNodeAction );
+        node.SelectedAction = createNodeAction;
     }
 
     void OnPlayerQuit( Player player )
@@ -118,25 +131,16 @@ public class ColourSelectState : GameState
         // Node cleanup is handled by GM here. No need to do anything special!
 
         SetControlsNotJoined( player );
-
-        GM.PlayerJoined.AddListener( OnPlayerJoined );
-        GM.PlayerQuit.RemoveListener( OnPlayerQuit );
     }
 
     void OnPlayerReady( Player player )
     {
         SetControlsReady( player );
-
-        GM.PlayerReady.RemoveListener( OnPlayerReady );
-        GM.PlayerNotReady.AddListener( OnPlayerNotReady );
     }
 
     void OnPlayerNotReady( Player player )
     {
         SetControlsJoined( player );
-
-        GM.PlayerReady.AddListener( OnPlayerReady );
-        GM.PlayerNotReady.RemoveListener( OnPlayerNotReady );
     }
 
     void SetControlsNotJoined( Player player )

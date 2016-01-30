@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class CenterSelectedTransform : MonoBehaviour
+public class Cursor : MonoBehaviour
 {
     public float Speed = 100f;
     public AnimationCurve SpeedWrtDistance;

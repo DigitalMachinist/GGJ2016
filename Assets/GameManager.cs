@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
 using Random = UnityEngine.Random;
 
@@ -18,12 +19,7 @@ public enum GMState
     Paused
 }
 
-public enum ColourChannel
-{
-    Red,
-    Green,
-    Blue
-}
+[Serializable] public class PlayerEvent : UnityEvent<Player> { }
 
 public class GameManager : MonoBehaviour
 {
@@ -42,7 +38,8 @@ public class GameManager : MonoBehaviour
 
     public Bounds Bounds;
     public Node NodePrefab;
-    public CenterSelectedTransform Cursor;
+    public NodeAction ActionPrefab;
+    public Cursor Cursor;
     public float GameSpeed = 1f;
     public GMState UnpauseState = GMState.Playing;
     public Player PlayerTurn;
@@ -50,10 +47,10 @@ public class GameManager : MonoBehaviour
 
     [Header( "Events" )]
     public FoldablePromise Ready;
-    public FoldableEvent<Player> PlayerJoined;
-    public FoldableEvent<Player> PlayerQuit;
-    public FoldableEvent<Player> PlayerReady;
-    public FoldableEvent<Player> PlayerNotReady;
+    public PlayerEvent PlayerJoined;
+    public PlayerEvent PlayerQuit;
+    public PlayerEvent PlayerReady;
+    public PlayerEvent PlayerNotReady;
 
     public ColourEffect ColourEffect { get; private set; }
     public List<Node> Nodes { get; private set; }
@@ -194,13 +191,6 @@ public class GameManager : MonoBehaviour
         //var zRandom = Random.Range( Bounds.min.z, Bounds.max.z );
         //StartPlaceNode( player, new Vector3( xRandom, 0f, zRandom ) );
         //FinalizePlaceNode( player, new Vector3( xRandom, 0f, zRandom ) );
-
-        // Pressing A no longer joins, but pressing B quits (but not if they are Player 1).
-        if ( player != Player1 )
-        {
-            player.Gamepad.AButton.Pressed.RemoveAllListeners();
-            player.Gamepad.BButton.Pressed.AddListener( () => QuitPlayer( player ) );
-        }
     }
 
     public void QuitPlayer( Player player, bool force = false )
@@ -218,20 +208,15 @@ public class GameManager : MonoBehaviour
         // Clean up all of the player's nodes.
         // This should happen here instead of in an event handler because this should give me a  
         // way to allow players to quite the game at any time -- even during an ongoing game.
-        foreach ( var node in player.Nodes )
-        {
-            Nodes.Remove( node );
-        }
         player
             .Nodes
             .ToList()
-            .ForEach( node => Destroy( node.gameObject ) );
+            .ForEach( node => {
+                Nodes.Remove( node );
+                Destroy( node.gameObject );
+            } );
 
         PlayerQuit.Invoke( player );
-
-        // Allow player to rejoin by pressing A, as before.
-        player.Gamepad.AButton.Pressed.AddListener( () => JoinPlayer( player ) );
-        player.Gamepad.BButton.Pressed.RemoveAllListeners();
     }
 
     public void QuitAllPlayers()
