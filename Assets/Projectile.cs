@@ -1,15 +1,10 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using UnityEngine;
+using UnityEngine.Events;
 
-public class Projectile : MonoBehaviour {
+public class ProjectileEvent : UnityEvent<Projectile> { }
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+public class Projectile : MonoBehaviour
+{
+    
 }

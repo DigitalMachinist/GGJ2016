@@ -83,7 +83,7 @@ public class ColourSelectState : GameState
             .ToList()
             .ForEach( player => {
 
-                if ( player.SelectedNode == null )
+                if ( player.SelectedNode == null || player.SamplingNode == null )
                 {
                     return;
                 }
@@ -98,8 +98,9 @@ public class ColourSelectState : GameState
                     // If the player doesn't pick a colour, randomize their direction input.
                     direction = new Vector3( Random.Range( 0f, 1f ), 0f, Random.Range( 0f, 1f ) ).normalized;
                 }
-
-                var nodeTransform = player.SelectedNode.transform;
+                
+                // Sample the colour of the node in placement state around the player's central node.
+                var nodeTransform = player.SamplingNode.transform;
                 nodeTransform.LookAt( nodeTransform.position + direction, Vector3.up );
                 player.Colour = nodeTransform.GetComponent<ColorSampler>().SampledColor;
 
@@ -113,21 +114,24 @@ public class ColourSelectState : GameState
         // Create this player's node at the center of the play area with a random rotation.
         var position = GM.Bounds.center;
         var rotation = Quaternion.Euler( 0f, Random.Range( 0f, 360f ), 0f );
-        var node = GM.InstantiateNode( GM.NodePrefab, player, position, rotation );
+        var centralNode = GM.InstantiateNode( GM.NodePrefab, player, position, rotation );
 
         // Parent the node to the nodes container, add it to the node list, and select it. The 
         // nodes will be cleaned up as soon as play starts anyway, so these will disappear.
         var nodesContainer = GameObject.FindGameObjectWithTag( "NodesContainer" );
-        node.transform.parent = nodesContainer.transform;
-        GM.Nodes.Add( node );
-        node.Player.SetSelectedNode( node );
+        centralNode.transform.parent = nodesContainer.transform;
+        //GM.Nodes.Add( centralNode );
+        centralNode.Player.SetSelectedNode( centralNode );
+
+        // Begin the process of creating a node that will sample the colour wheel.
+        player.SamplingNode = GM.StartPlaceNode( centralNode );
 
         // Make sure this node ONLY has the Create Node action. Select that action now so that 
         // it will be the one controller by the owning player.
-        node.Actions.Clear();
-        var createNodeAction = NodeActionFactory.GetCreateNodeAction();
-        node.Actions.Add( createNodeAction );
-        node.SelectedAction = createNodeAction;
+        //node.Actions.Clear();
+        //var createNodeAction = NodeActionFactory.GetCreateNodeAction();
+        //node.Actions.Add( createNodeAction );
+        //node.SelectedAction = createNodeAction;
     }
 
     void OnPlayerQuit( Player player )

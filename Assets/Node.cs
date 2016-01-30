@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 [Serializable] public class NodeEvent : UnityEvent<Node> { }
-[Serializable] public class NodeDamageEvent : UnityEvent<Node, int> { }
+[Serializable] public class NodeCollisionEvent : UnityEvent<Node, Collision> { }
 
 public class Node : MonoBehaviour
 {
@@ -17,7 +17,7 @@ public class Node : MonoBehaviour
     public NodeEvent Created;
     public NodeEvent Placed;
     public NodeEvent Destroyed;
-    public NodeDamageEvent Damaged; // TODO
+    public NodeCollisionEvent Collision; // TODO
     public NodeEvent ReadyToAct; // TODO
     public NodeEvent Grew;
     public ActionEvent ActionSelected;
@@ -34,6 +34,10 @@ public class Node : MonoBehaviour
     public bool IsSelected
     {
         get { return ( Player == null ) ? false : ( Player.SelectedNode == this ); }
+    }
+    public float CreateDistance
+    {
+        get { return 8f; }
     }
 
     void Awake()

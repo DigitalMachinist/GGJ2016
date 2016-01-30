@@ -180,17 +180,9 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
-
-        PlayerJoined.Invoke( player );
-
-        // Set up the player.
+        
         player.IsEnabled = true;
-        player.Colour = new Color( Random.Range( 0f, 1f ), Random.Range( 0f, 1f ), Random.Range( 0f, 1f ) );
-
-        //var xRandom = Random.Range( Bounds.min.x, Bounds.max.x );
-        //var zRandom = Random.Range( Bounds.min.z, Bounds.max.z );
-        //StartPlaceNode( player, new Vector3( xRandom, 0f, zRandom ) );
-        //FinalizePlaceNode( player, new Vector3( xRandom, 0f, zRandom ) );
+        PlayerJoined.Invoke( player );
     }
 
     public void QuitPlayer( Player player, bool force = false )
@@ -242,7 +234,6 @@ public class GameManager : MonoBehaviour
 
     public Node InstantiateNode( Node nodePrefab, Player player, Vector3 position, Quaternion rotation )
     {
-
         var node = (Node)Instantiate( nodePrefab, position, rotation );
 
         // Set the new node's player equal to the creator node's player.
@@ -255,16 +246,17 @@ public class GameManager : MonoBehaviour
         return node;
     }
 
-    public void StartPlaceNode( Node creator, float distance )
+    public Node StartPlaceNode( Node parentNode )
     {
         // This starts the node placement process --> FinalizePlaceNode() finishes it.
         // Create the new node <distance> units forward from the creator node, giving the new node 
         // a random rotation. Parent the new node to the creator node.
-        var offset = distance * creator.transform.TransformDirection( Vector3.forward );
-        var position = creator.transform.position + offset;
+        var offset = parentNode.CreateDistance * parentNode.transform.TransformDirection( Vector3.forward );
+        var position = parentNode.transform.position + offset;
         var rotation = Quaternion.Euler( 0f, Random.Range( 0f, 360f ), 0f );
-        var node = InstantiateNode( NodePrefab, creator.Player, position, rotation );
-        node.transform.parent = creator.transform;
+        var childNode = InstantiateNode( NodePrefab, parentNode.Player, position, rotation );
+        childNode.transform.parent = parentNode.transform;
+        return childNode;
     }
 
     public bool FinalizePlaceNode( Node node )

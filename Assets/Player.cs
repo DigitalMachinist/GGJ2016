@@ -10,6 +10,7 @@ public class Player : MonoBehaviour
     public Color Colour = Color.black;
     public Xbox360Gamepad Gamepad;
     public Node SelectedNode;
+    public Node SamplingNode;
 
     public NodeEvent NodeSelected;
     public NodeEvent NodeDeselected;

@@ -17,10 +17,11 @@ public class NodeAction : MonoBehaviour
     public int EnergyCost = 0;
     public int HPCost = 0;
     
-    public ActionEvent BeganWarmup;
-    public ActionEvent BeganDuration;
-    public ActionEvent BeganCooldown;
-    public ActionEvent Ended;
+    public ActionEvent BeganWarmup; // TODO
+    public ActionEvent BeganDuration; // TODO
+    public ActionEvent BeganCooldown; // TODO
+    public ActionEvent Ended; // TODO
+    public ProjectileEvent ProjectileEmitted; // TODO
 
     public List<CollisionBehaviour> CollisionDeflectBehaviours { get; private set; }
     public List<CollisionBehaviour> CollisionImpactBehaviours { get; private set; }
