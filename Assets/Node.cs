@@ -1,5 +1,11 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using UnityEngine.Events;
+
+[Serializable] public class NodeEvent : UnityEvent<Node> { }
+[Serializable] public class NodeDamageEvent : UnityEvent<Node, int> { }
 
 public class Node : MonoBehaviour
 {
@@ -7,8 +13,18 @@ public class Node : MonoBehaviour
     public int HP;
     public int Level;
     public NodeAction SelectedAction;
-    public List<NodeAction> Actions;
 
+    public NodeEvent Created;
+    public NodeEvent Placed;
+    public NodeEvent Destroyed;
+    public NodeDamageEvent Damaged; // TODO
+    public NodeEvent ReadyToAct; // TODO
+    public NodeEvent Grew;
+    public ActionEvent ActionSelected;
+    public ActionEvent ActionDeselected;
+
+
+    public List<NodeAction> Actions { get; private set; }
     public ColorSampler Sampler { get; private set; }
 
     public Color Colour
@@ -23,5 +39,48 @@ public class Node : MonoBehaviour
     void Awake()
     {
         Sampler = GetComponent<ColorSampler>();
+        Created.Invoke( this );
+    }
+
+    void OnDestroy()
+    {
+        Destroyed.Invoke( this );
+    }
+
+    public void AddAction( NodeAction action )
+    {
+        Actions.Add( action );
+        action.transform.parent = transform;
+        action.transform.localPosition = Vector3.zero;
+        action.transform.localRotation = Quaternion.identity;
+        action.name = action.ToString();
+    }
+
+    public void ClearActions()
+    {
+        SelectedAction = null;
+        Actions
+            .ToList()
+            .ForEach( action => {
+                Actions.Remove( action );
+                Destroy( action );
+            } );
+
+    }
+
+    void SetSelectedAction( NodeAction action )
+    {
+        if ( SelectedAction != null )
+        {
+            ActionDeselected.Invoke( SelectedAction );
+        }
+        SelectedAction = action;
+        ActionSelected.Invoke( action );
+    }
+
+    public void Grow()
+    {
+        Level++;
+        Grew.Invoke( this );
     }
 }

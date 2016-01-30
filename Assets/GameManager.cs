@@ -281,7 +281,7 @@ public class GameManager : MonoBehaviour
         var nodesContainer = GameObject.FindGameObjectWithTag( "NodesContainer" );
         node.transform.parent = nodesContainer.transform;
         Nodes.Add( node );
-        node.Player.SelectedNode = node;
+        node.Player.SetSelectedNode( node );
 
         return true;
     }

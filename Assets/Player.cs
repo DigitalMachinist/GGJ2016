@@ -11,6 +11,9 @@ public class Player : MonoBehaviour
     public Xbox360Gamepad Gamepad;
     public Node SelectedNode;
 
+    public NodeEvent NodeSelected;
+    public NodeEvent NodeDeselected;
+
     public GameManager GM { get; private set; }
 
     //public ColourBenefit ColourBenefit
@@ -53,13 +56,13 @@ public class Player : MonoBehaviour
         var nodeList = Nodes.ToList();
         if ( SelectedNode == null )
         {
-            SelectedNode = nodeList[ 0 ];
+            SetSelectedNode( nodeList[ 0 ] );
         }
         else
         {
             var index = nodeList.IndexOf( SelectedNode );
             var newIndex = ( index + 1 ) % nodeList.Count;
-            SelectedNode = nodeList[ newIndex ];
+            SetSelectedNode( nodeList[ newIndex ] );
         }
     }
 
@@ -73,7 +76,7 @@ public class Player : MonoBehaviour
         var nodeList = Nodes.ToList();
         if ( SelectedNode == null )
         {
-            SelectedNode = nodeList[ 0 ];
+            SetSelectedNode( nodeList[ 0 ] );
         }
         else
         {
@@ -83,12 +86,22 @@ public class Player : MonoBehaviour
             {
                 newIndex = nodeList.Count - 1;
             }
-            SelectedNode = nodeList[ newIndex ];
+            SetSelectedNode( nodeList[ newIndex ] );
         }
     }
 
     void SkipTurn()
     {
         Debug.Log( "SKIP TURN: Figure this out later!" );
+    }
+
+    public void SetSelectedNode( Node node )
+    {
+        if ( SelectedNode != null )
+        {
+            NodeDeselected.Invoke( SelectedNode );
+        }
+        SelectedNode = node;
+        NodeSelected.Invoke( node );
     }
 }

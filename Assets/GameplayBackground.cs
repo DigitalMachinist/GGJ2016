@@ -7,7 +7,7 @@ public class GameplayBackground : MonoBehaviour
     {
         var number = Random.Range( 1, 22 );
         var name = "Nullify" + ( ( number < 10 ) ? "0" : "" ) + number;
-        var material = GetComponent<Renderer>().material;
-        material = Resources.Load<Material>( name );
+        GetComponent<Renderer>().material = Resources.Load<Material>( name );
+        Debug.Log( "Gameplay background changed to " + name + "." );
     }
 }

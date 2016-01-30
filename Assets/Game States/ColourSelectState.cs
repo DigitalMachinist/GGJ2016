@@ -15,6 +15,9 @@ public class ColourSelectState : GameState
         Time.timeScale = 0f;
         GM.Cursor.enabled = false;
 
+        // Change the gameplay area's background
+        Object.FindObjectOfType<GameplayBackground>().RandomMaterial();
+
         // Show player select screen and move the camera to the special colour select play area.
         GameObject.FindGameObjectWithTag( "ColourSelectScreen" ).SetActive( true );
         var center = new Vector3( -80f, 0f, 45f );
@@ -54,9 +57,6 @@ public class ColourSelectState : GameState
         // Hide player select screen.
         GameObject.FindGameObjectWithTag( "ColourSelectScreen" ).SetActive( true );
 
-        // Change the gameplay area's background
-        Object.FindObjectOfType<GameplayBackground>().RandomMaterial();
-
         // Clear all A, B and Start button controls for all players.
         GM
             .Players
@@ -95,7 +95,8 @@ public class ColourSelectState : GameState
                 );
                 if ( direction == Vector3.zero )
                 {
-                    direction = Vector3.forward;
+                    // If the player doesn't pick a colour, randomize their direction input.
+                    direction = new Vector3( Random.Range( 0f, 1f ), 0f, Random.Range( 0f, 1f ) ).normalized;
                 }
 
                 var nodeTransform = player.SelectedNode.transform;
@@ -119,7 +120,7 @@ public class ColourSelectState : GameState
         var nodesContainer = GameObject.FindGameObjectWithTag( "NodesContainer" );
         node.transform.parent = nodesContainer.transform;
         GM.Nodes.Add( node );
-        node.Player.SelectedNode = node;
+        node.Player.SetSelectedNode( node );
 
         // Make sure this node ONLY has the Create Node action. Select that action now so that 
         // it will be the one controller by the owning player.

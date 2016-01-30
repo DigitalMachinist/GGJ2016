@@ -30,6 +30,23 @@ public static class NodeActionFactory
         action.EnergyCost = energyCost;
         action.HPCost = hpCost;
 
+        if ( nodeBehaviour == null )
+        {
+            nodeBehaviour = new List<NodeBehaviour>();
+        }
+        if ( collisionImpactBehaviours == null )
+        {
+            collisionImpactBehaviours = new List<CollisionBehaviour>();
+        }
+        if ( collisionDeflectBehaviours == null )
+        {
+            collisionDeflectBehaviours = new List<CollisionBehaviour>();
+        }
+        if ( selectionFilters == null )
+        {
+            selectionFilters = new List<SelectionFilter>();
+        }
+
         nodeBehaviour
             .ForEach( behaviour => action.NodeBehaviours.Add( behaviour ) );
         collisionImpactBehaviours
