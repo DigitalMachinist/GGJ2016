@@ -186,6 +186,7 @@ public class FoldablePromise<TArg0, TArg1, TArg2, TArg3> : FoldableEvent<TArg0, 
             this.arg0 = arg0;
             this.arg1 = arg1;
             this.arg2 = arg2;
+            this.arg3 = arg3;
             Event.Invoke( arg0, arg1, arg2, arg3 );
         }
     }
