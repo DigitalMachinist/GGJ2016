@@ -1,32 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Stateless;
 using UnityEngine;
+
+using Random = UnityEngine.Random;
 
 public enum GMState
 {
     NULL,
-    Start,
+    Title,
+    MainMenu, 
+    ColourSelect,
     Playing,
-    PlayerTurn,
-    GameOver,
-    ControllerDisconnected,
+    Action,
+    Victory,
+    GamepadDisconnected,
     Paused
-}
-
-public enum GMTrigger
-{
-    Ready,
-    PlayBegan,
-    NodeIsReady,
-    PlayerTurnHasEnded,
-    PlayerHasWon,
-    Reset, 
-    ControllerDisconnected,
-    ControllerReconnected,
-    Paused,
-    Unpaused
 }
 
 public enum ColourChannel
@@ -38,20 +27,35 @@ public enum ColourChannel
 
 public class GameManager : MonoBehaviour
 {
+    static GameManager instance;
+    public static GameManager Instance
+    {
+        get
+        {
+            if ( instance == null )
+            {
+                instance = FindObjectOfType<GameManager>();
+            }
+            return instance;
+        }
+    }
+
+    public Bounds Bounds;
+    public Node NodePrefab;
     public CenterSelectedTransform Cursor;
     public float GameSpeed = 1f;
+    public GMState UnpauseState = GMState.Playing;
     public Player PlayerTurn;
     public List<Player> Players;
-    public List<Node> Nodes;
 
     [Header( "Events" )]
     public FoldablePromise Ready;
-
-    bool unpauseToPlayerTurn = false;
-
+    
     public Dictionary<ColourChannel, ColourStats> ColourChannels { get; private set; }
-    public StateMachine<GMState, GMTrigger> FSM { get; private set; }
+    public List<Node> Nodes { get; private set; }
     public Queue<Node> PendingNodes { get; private set; }
+    public GMState State { get; private set; }
+    public Dictionary<GMState, GameState> StatesMap { get; private set; }
     public IEnumerable<Victory> Victories { get; private set; }
 
     public IEnumerable<Player> EnabledPlayers
@@ -62,11 +66,29 @@ public class GameManager : MonoBehaviour
     {
         get { return Victories.Where( victory => victory.IsEnabled ); }
     }
+    public Player Player1
+    {
+        get { return Players.Single( player => player.Number == 1 ); }
+    }
 
     void Awake()
     {
-        ConfigureFSM();
-        Ready.AddListener( () => FSM.Fire( GMTrigger.Ready ) );
+        Nodes = new List<Node>();
+
+        // Set up a map of GMState enum values to state objects.
+        State = GMState.NULL;
+        StatesMap = new Dictionary<GMState, GameState>()
+        {
+            { GMState.NULL, new NullState( this, GMState.NULL ) },
+            { GMState.Title, new TitleState( this, GMState.Title ) },
+            { GMState.MainMenu, new MainMenuState( this, GMState.MainMenu ) },
+            { GMState.ColourSelect, new ColourSelectState( this, GMState.ColourSelect ) },
+            { GMState.Playing, new PlayingState( this, GMState.Playing ) },
+            { GMState.Action, new PlayerTurnState( this, GMState.Action ) },
+            { GMState.Victory, new VictoryState( this, GMState.Victory ) },
+            { GMState.GamepadDisconnected, new GamepadDisconnectedState( this, GMState.GamepadDisconnected ) },
+            { GMState.Paused, new PausedState( this, GMState.Paused ) }
+        };
     }
 
     void Start()
@@ -89,94 +111,119 @@ public class GameManager : MonoBehaviour
         var victories = transform.FindChild( "Colour Channels" );
         Victories = new List<Victory>( transform.GetComponentsInChildren<Victory>() );
 
-        // Tell the rest of the game that all of the core resources are ready!
+        // Start up and tell the rest of the game that all of the GM resources are ready!
+        ChangeState( GMState.Title );
         Ready.Resolve();
     }
 
     void Update()
     {
-
+        // Run the current state's update function.
+        StatesMap[ State ].Update();
     }
 
-    void ConfigureFSM()
+    public void ChangeState( GMState newState )
     {
-        FSM = new StateMachine<GMState, GMTrigger>( GMState.Start );
+        if ( newState == State )
+        {
+            return;
+        }
 
-        FSM
-            .Configure( GMState.NULL )
-            .Permit( GMTrigger.Ready, GMState.Start )
-            .OnEntry( () => {
-                Time.timeScale = 0f;
-            } )
-            .OnExit( () => {
+        StatesMap[ State ].OnExit();
+        State = newState;
+        StatesMap[ State ].OnEntry();
+    }
 
-            } );
+    public void ChangeToMainMenu()
+    {
+        ChangeState( GMState.MainMenu );
+    }
 
-        FSM
-            .Configure( GMState.Start )
-            .Permit( GMTrigger.PlayBegan, GMState.Playing )
-            .OnEntry( () => {
-                Time.timeScale = 0f;
-            } )
-            .OnExit( () => {
+    public void ChangeToPlaying()
+    {
+        // The game can only be played with 2 or more players.
+        if ( EnabledPlayers.Count() > 1 )
+        {
+            ChangeState( GMState.Playing );
+        }
+    }
 
-            } );
+    public void Join( Player player )
+    {
+        // If player has already joined, don't redo that.
+        if ( ( player == null || player.IsEnabled ) )
+        {
+            return;
+        }
 
-        FSM
-            .Configure( GMState.Playing )
-            .Permit( GMTrigger.NodeIsReady, GMState.PlayerTurn )
-            .Permit( GMTrigger.PlayerHasWon, GMState.GameOver )
-            .Permit( GMTrigger.ControllerDisconnected, GMState.ControllerDisconnected )
-            .Permit( GMTrigger.Paused, GMState.Paused )
-            .OnEntry( () => {
-                Time.timeScale = GameSpeed;
-            } )
-            .OnExit( () => {
-                unpauseToPlayerTurn = false;
-            } );
+        // Set up the player.
+        player.IsEnabled = true;
+        player.Colour = new Color( Random.Range( 0f, 1f ), Random.Range( 0f, 1f ), Random.Range( 0f, 1f ) );
+        var xRandom = Random.Range( Bounds.min.x, Bounds.max.x );
+        var zRandom = Random.Range( Bounds.min.z, Bounds.max.z );
+        SpawnNode( player, new Vector3( xRandom, 0f, zRandom ) );
 
-        FSM
-            .Configure( GMState.PlayerTurn )
-            .Permit( GMTrigger.PlayerTurnHasEnded, GMState.Playing )
-            .Permit( GMTrigger.ControllerDisconnected, GMState.ControllerDisconnected )
-            .Permit( GMTrigger.Paused, GMState.Paused )
-            .OnEntry( () => {
-                Time.timeScale = 0f;
-            } )
-            .OnExit( () => {
-                unpauseToPlayerTurn = true;
-            } );
+        // Pressing A no longer joins, but pressing B quits (but not if they are Player 1).
+        if ( player != Player1 )
+        {
+            player.Gamepad.AButton.Pressed.RemoveAllListeners();
+            player.Gamepad.BButton.Pressed.AddListener( () => Quit( player ) );
+        }
+    }
 
-        FSM
-            .Configure( GMState.GameOver )
-            .Permit( GMTrigger.Reset, GMState.Start )
-            .OnEntry( () => {
-                Time.timeScale = 0f;
-            } )
-            .OnExit( () => {
+    public void Quit( Player player, bool force = false )
+    {
+        // Player 1 can't quit.
+        if ( !force && ( player == null || player == Player1 ) )
+        {
+            return;
+        }
 
-            } );
+        // Reset the player and clean up their first node.
+        player.IsEnabled = false;
+        player.Colour = Color.black;
+        foreach ( var node in player.Nodes )
+        {
+            Nodes.Remove( node );
+        }
+        player
+            .Nodes
+            .ToList()
+            .ForEach( node => Destroy( node.gameObject ) );
 
-        FSM
-            .Configure( GMState.ControllerDisconnected )
-            .Permit( GMTrigger.ControllerReconnected, GMState.Playing )
-            .OnEntry( () => {
-                Time.timeScale = 0f;
-            } )
-            .OnExit( () => {
+        // Allow player to rejoin by pressing A, as before.
+        player.Gamepad.AButton.Pressed.AddListener( () => Join( player ) );
+        player.Gamepad.BButton.Pressed.RemoveAllListeners();
+    }
 
-            } );
+    public void QuitAll()
+    {
+        foreach ( var player in EnabledPlayers )
+        {
+            Quit( player );
+        }
+    }
 
-        FSM
-            .Configure( GMState.Paused )
-            .Permit( GMTrigger.Reset, GMState.Start )
-            .PermitIf( GMTrigger.Unpaused, GMState.Playing, () => !unpauseToPlayerTurn )
-            .PermitIf( GMTrigger.Unpaused, GMState.PlayerTurn, () => !unpauseToPlayerTurn )
-            .OnEntry( () => {
-                Time.timeScale = 0f;
-            } )
-            .OnExit( () => {
+    public bool SpawnNode( Player player, Vector3 position, bool simulate = false )
+    {
+        if ( !Bounds.Contains( position ) )
+        {
+            return false;
+        }
 
-            } );
+        if ( !simulate )
+        {
+            var nodesContainer = GameObject.FindGameObjectWithTag( "NodesContainer" );
+            var node = (Node)Instantiate( NodePrefab, position, Quaternion.identity );
+            node.transform.parent = nodesContainer.transform;
+            node.Player = player;
+            node.name = "Node (Player " + player.Number + ")";
+            node.GetComponent<Renderer>().material.color = player.Colour;
+
+            Nodes.Add( node );
+            player.SelectedNode = node;
+        }
+
+        return true;
     }
 }

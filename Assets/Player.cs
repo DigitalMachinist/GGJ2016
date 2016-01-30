@@ -20,8 +20,12 @@ public class Player : MonoBehaviour
     void Awake()
     {
         // Player controls.
-        Gamepad.LeftTrigger.Pressed.AddListener( () => SelectedNode = PrevNode() );
-        Gamepad.RightTrigger.Pressed.AddListener( () => SelectedNode = NextNode() );
+        Gamepad.LeftTrigger.Pressed.AddListener( PreviousNode );
+        Gamepad.RightTrigger.Pressed.AddListener( NextNode );
+
+        // Debug controls.
+        Gamepad.LeftBumper.Pressed.AddListener( CreateNode );
+        Gamepad.RightBumper.Pressed.AddListener( SkipTurn );
     }
 
     void Start()
@@ -29,12 +33,42 @@ public class Player : MonoBehaviour
         GM = FindObjectOfType<GameManager>();
     }
 
-    Node PrevNode()
+    void CreateNode()
     {
+        GM.SpawnNode( this, new Vector3( Random.Range( 27f, 133f ), 0f, Random.Range( 15f, 75f ) ) );
+    }
+
+    void NextNode()
+    {
+        if ( GM.PlayerTurn != this )
+        {
+            return;
+        }
+
         var nodeList = Nodes.ToList();
         if ( SelectedNode == null )
         {
-            return nodeList[ 0 ];
+            SelectedNode = nodeList[ 0 ];
+        }
+        else
+        {
+            var index = nodeList.IndexOf( SelectedNode );
+            var newIndex = ( index + 1 ) % nodeList.Count;
+            SelectedNode = nodeList[ newIndex ];
+        }
+    }
+
+    void PreviousNode()
+    {
+        if ( GM.PlayerTurn != this )
+        {
+            return;
+        }
+
+        var nodeList = Nodes.ToList();
+        if ( SelectedNode == null )
+        {
+            SelectedNode = nodeList[ 0 ];
         }
         else
         {
@@ -44,22 +78,12 @@ public class Player : MonoBehaviour
             {
                 newIndex = nodeList.Count - 1;
             }
-            return nodeList[ newIndex ];
+            SelectedNode = nodeList[ newIndex ];
         }
     }
 
-    Node NextNode()
+    void SkipTurn()
     {
-        var nodeList = Nodes.ToList();
-        if ( SelectedNode == null )
-        {
-            return nodeList[ 0 ];
-        }
-        else
-        {
-            var index = nodeList.IndexOf( SelectedNode );
-            var newIndex = ( index + 1 ) % nodeList.Count;
-            return nodeList[ newIndex ];
-        }
+        Debug.Log( "SKIP TURN: Figure this out later!" );
     }
 }

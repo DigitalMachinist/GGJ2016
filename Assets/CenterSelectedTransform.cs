@@ -2,19 +2,18 @@
 
 public class CenterSelectedTransform : MonoBehaviour
 {
-    public float Speed = 1f;
+    public float Speed = 100f;
     public AnimationCurve SpeedWrtDistance;
-
-    GameManager GM;
 
     public Node TargetNode
     {
-        get { return GM.PlayerTurn.SelectedNode; }
-    }
-
-    void Start()
-    {
-        GM = FindObjectOfType<GameManager>();
+        get
+        {
+            var playerTurn = GameManager.Instance.PlayerTurn;
+            return ( playerTurn != null )
+                ? playerTurn.SelectedNode
+                : null;
+        }
     }
 
     void Update()
