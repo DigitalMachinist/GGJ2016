@@ -6,12 +6,12 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-public static class ActionBehaviours
+public static class BehaviourLibrary
 {
     // CREATE NODE
     public static NodeBehaviour CreateNodeBehaviour()
     {
-        return new NodeBehaviour( NodeBehaviourType.Other, "Create New Node", ActionBehaviours.CreateNodeCoroutine );
+        return new NodeBehaviour( NodeBehaviourType.Other, "Create New Node", BehaviourLibrary.CreateNodeCoroutine );
     }
     static IEnumerator CreateNodeCoroutine(
         NodeAction action,

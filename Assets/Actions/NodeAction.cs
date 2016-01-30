@@ -6,6 +6,7 @@ using UnityEngine;
 public class NodeAction : MonoBehaviour
 {
     public Node Node;
+    public Projectile ProjectilePrefab;
     public float WarmupDelay;
     public float Duration;
     public float CooldownDelay;

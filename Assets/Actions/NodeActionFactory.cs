@@ -59,7 +59,7 @@ public static class NodeActionFactory
             0,
             new List<NodeBehaviour>()
             {
-                ActionBehaviours.CreateNodeBehaviour()
+                BehaviourLibrary.CreateNodeBehaviour()
             }
         );
     }

@@ -54,6 +54,9 @@ public class ColourSelectState : GameState
         // Hide player select screen.
         GameObject.FindGameObjectWithTag( "ColourSelectScreen" ).SetActive( true );
 
+        // Change the gameplay area's background
+        Object.FindObjectOfType<GameplayBackground>().RandomMaterial();
+
         // Clear all A, B and Start button controls for all players.
         GM
             .Players
