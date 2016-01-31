@@ -336,10 +336,9 @@ public class Health : MonoBehaviour
         {
             RemoveEffect( effect.Key, effectMap, endEvent );
         }
-        effect.EffectBeginFunc( this );
         effectMap.Add( effect.Key, effect );
-        beginEvent.Invoke( this, effect, 0 );
-        effect.EffectCoroutineHandle = EffectCoroutine( effect, effectMap, procEvent );
+        beginEvent.Invoke( this, effect, effect.EffectBeginFunc( this ) );
+        effect.EffectCoroutineHandle = EffectCoroutine( effect, effectMap, procEvent, endEvent );
         StartCoroutine( effect.EffectCoroutineHandle );
     }
 
@@ -357,9 +356,10 @@ public class Health : MonoBehaviour
         if ( effect.EffectCoroutineHandle != null )
         {
             StopCoroutine( effect.EffectCoroutineHandle );
+            effect.EffectCoroutineHandle = null;
         }
+        endEvent.Invoke( this, effect, effect.GetEndEffect( this ) );
         effectMap.Remove( key );
-        endEvent.Invoke( this, effect, 0 );
         return true;
     }
 
@@ -385,7 +385,6 @@ public class Health : MonoBehaviour
             }
             procEvent.Invoke( this, effect, hpGained );
         }
-        effect.EffectCoroutineHandle = null;
         RemoveEffect( effect.Key, effectMap, endEvent );
     }
 
