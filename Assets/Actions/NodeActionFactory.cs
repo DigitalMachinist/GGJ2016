@@ -75,4 +75,28 @@ public static class NodeActionFactory
     {
         return (GrowAction)Object.Instantiate( GameManager.Instance.GrowActionPrefab );
     }
+
+    public static NodeAction MachineGun()
+    {
+        GameManager GM = GameManager.Instance;
+
+        return GetAction(
+            GM.BaseActionPrefab,
+            1f,
+            3f,
+            1f,
+            10f,
+            50,
+            0,
+            new List<NodeBehaviour>()
+            {
+                new MachineGunShootingBehaviour(),
+                new PingPongAimingBehaviour()
+            },
+            new List<CollisionBehaviour>()
+            {
+                new CollisionDamageBehaviour()
+            }
+        );
+    }
 }

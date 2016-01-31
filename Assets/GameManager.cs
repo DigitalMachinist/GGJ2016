@@ -41,6 +41,7 @@ public class GameManager : MonoBehaviour
     public NodeAction BaseActionPrefab;
     public NodeAction CreateNodeActionPrefab;
     public NodeAction GrowActionPrefab;
+    public Projectile BulletPrefab;
     public GameObject ColourWheelMask;
     public Cursor Cursor;
     public float GameSpeed = 1f;

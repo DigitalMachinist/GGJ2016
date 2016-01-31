@@ -13,16 +13,14 @@ public class GrowBehaviour : NodeBehaviour
 
         action.BeganWarmup.Invoke( action );
         yield return new WaitForSeconds( action.WarmupDelay );
-        Debug.Log( "WAT" );
 
         action.BeganDuration.Invoke( action );
         yield return new WaitForSeconds( action.Duration );
+
         action.Node.Grow();
-        Debug.Log( "WAT WAT WAT" );
 
         action.BeganCooldown.Invoke( action );
         yield return new WaitForSeconds( action.CooldownDelay );
-        Debug.Log( "WAT WAT WAT WAT WAT WAT WAT WAT WAT" );
 
         action.Ended.Invoke( action );
     }
