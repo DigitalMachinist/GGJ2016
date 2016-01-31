@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
     public Bounds Bounds;
     public Node NodePrefab;
     public NodeAction ActionPrefab;
+    public GameObject ColourWheelMask;
     public Cursor Cursor;
     public float GameSpeed = 1f;
     public GMState UnpauseState = GMState.Playing;
@@ -167,7 +168,7 @@ public class GameManager : MonoBehaviour
     public void ChangeToPlaying()
     {
         // The game can only be played with 2 or more players.
-        if ( EnabledPlayers.Count() > 1 )
+        if ( ReadyPlayers.Count() >= 2 )
         {
             ChangeState( GMState.Playing );
         }
@@ -222,6 +223,11 @@ public class GameManager : MonoBehaviour
 
     public void ReadyPlayer( Player player )
     {
+        if ( player.SamplingNode.Colour == Color.black )
+        {
+            Debug.Log( "Sampled colour was black. Blocking the player from being ready..." );
+            return;
+        }
         player.IsReady = true;
         PlayerReady.Invoke( player );
     }
@@ -253,9 +259,11 @@ public class GameManager : MonoBehaviour
         // a random rotation. Parent the new node to the creator node.
         var offset = parentNode.CreateDistance * parentNode.transform.TransformDirection( Vector3.forward );
         var position = parentNode.transform.position + offset;
-        var rotation = Quaternion.Euler( 0f, Random.Range( 0f, 360f ), 0f );
+        //var rotation = Quaternion.Euler( 0f, Random.Range( 0f, 360f ), 0f );
+        var rotation = Quaternion.identity;
         var childNode = InstantiateNode( NodePrefab, parentNode.Player, position, rotation );
         childNode.transform.parent = parentNode.transform;
+        childNode.transform.localRotation = Quaternion.identity;
         return childNode;
     }
 
@@ -271,10 +279,21 @@ public class GameManager : MonoBehaviour
         // nodes collection so it can be queried by actions and set it to be the player's currently 
         // selected node.
         var nodesContainer = GameObject.FindGameObjectWithTag( "NodesContainer" );
+        node.transform.localRotation = Quaternion.Euler( 0f, Random.Range( 0f, 360f ), 0f );
         node.transform.parent = nodesContainer.transform;
         Nodes.Add( node );
         node.Player.SetSelectedNode( node );
 
         return true;
+    }
+
+    public void ClearAllNodes()
+    {
+        Nodes
+            .ToList()
+            .ForEach( node => {
+                Nodes.Remove( node );
+                Destroy( node.gameObject );
+            } );
     }
 }

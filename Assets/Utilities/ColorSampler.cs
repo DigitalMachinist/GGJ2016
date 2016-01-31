@@ -11,6 +11,8 @@ public class ColorSampler : MonoBehaviour
 
     void Update()
     {
+        SampledColor = Color.black;
+
         RaycastHit raycastHit;
         var ray = new Ray( transform.position, RaycastVector.normalized );
         var didRaycastHit = Physics.Raycast( ray, out raycastHit, RaycastVector.magnitude, LayerMask, InteractsWithTriggers );

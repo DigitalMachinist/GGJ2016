@@ -1,5 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEngine;
+
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 public class ColourSelectState : GameState
 {
@@ -57,6 +61,9 @@ public class ColourSelectState : GameState
         // Hide player select screen.
         GameObject.FindGameObjectWithTag( "ColourSelectScreen" ).SetActive( true );
 
+        // Prepare the gameplay area for the battle!
+        PrepareGameplayArea();
+
         // Clear all A, B and Start button controls for all players.
         GM
             .Players
@@ -82,7 +89,7 @@ public class ColourSelectState : GameState
             .Where( player => !player.IsReady )
             .ToList()
             .ForEach( player => {
-
+                
                 if ( player.SelectedNode == null || player.SamplingNode == null )
                 {
                     return;
@@ -96,13 +103,18 @@ public class ColourSelectState : GameState
                 if ( direction == Vector3.zero )
                 {
                     // If the player doesn't pick a colour, randomize their direction input.
-                    direction = new Vector3( Random.Range( 0f, 1f ), 0f, Random.Range( 0f, 1f ) ).normalized;
+                    //direction = new Vector3( Random.Range( -1f, 1f ), 0f, Random.Range( -1f, 1f ) ).normalized;
+                    direction = Vector3.forward;
                 }
-                
+
                 // Sample the colour of the node in placement state around the player's central node.
-                var nodeTransform = player.SamplingNode.transform;
+                var nodeTransform = player.SelectedNode.transform;
                 nodeTransform.LookAt( nodeTransform.position + direction, Vector3.up );
-                player.Colour = nodeTransform.GetComponent<ColorSampler>().SampledColor;
+
+                // Sample the colour wheel and use that to set the player's colour.
+                var samplingNode = player.SamplingNode;
+                player.Colour = samplingNode.GetComponent<ColorSampler>().SampledColor;
+                samplingNode.UpdateMaterialColour();
 
             } );
     }
@@ -125,13 +137,6 @@ public class ColourSelectState : GameState
 
         // Begin the process of creating a node that will sample the colour wheel.
         player.SamplingNode = GM.StartPlaceNode( centralNode );
-
-        // Make sure this node ONLY has the Create Node action. Select that action now so that 
-        // it will be the one controller by the owning player.
-        //node.Actions.Clear();
-        //var createNodeAction = NodeActionFactory.GetCreateNodeAction();
-        //node.Actions.Add( createNodeAction );
-        //node.SelectedAction = createNodeAction;
     }
 
     void OnPlayerQuit( Player player )
@@ -144,6 +149,13 @@ public class ColourSelectState : GameState
     void OnPlayerReady( Player player )
     {
         SetControlsReady( player );
+
+        // Place 
+        var nodeTransform = player.SamplingNode.transform;
+        var mask = Object.Instantiate( GM.ColourWheelMask );
+        mask.transform.parent = nodeTransform;
+        mask.transform.localPosition = Vector3.zero;
+        mask.transform.localRotation = Quaternion.identity;
     }
 
     void OnPlayerNotReady( Player player )
@@ -179,9 +191,41 @@ public class ColourSelectState : GameState
     {
         // Pressing A does nothing.
         player.Gamepad.AButton.Pressed.RemoveAllListeners();
+        if ( player == GM.Player1 )
+        {
+            player.Gamepad.AButton.Pressed.AddListener( GM.ChangeToPlaying );
+        }
 
         // Pressing B indicates that the player is no longer ready and wants to choose colour again.
         player.Gamepad.BButton.Pressed.RemoveAllListeners();
         player.Gamepad.BButton.Pressed.AddListener( () => GM.NotReadyPlayer( player ) );
+    }
+
+    void PrepareGameplayArea()
+    {
+        // Clear all of the nodes we just created so we start fresh.
+        GM.ClearAllNodes();
+
+        // Instantiate players' first nodes randomly so they come up in the turn order randomly.
+        GM
+            .ReadyPlayers
+            .OrderBy( player => Guid.NewGuid() ) 
+            .ToList()
+            .ForEach( player => {
+
+                // Reset each player's energy.
+                player.Energy = 0;
+
+                // Instantiate first node randomly.
+                var xRandom = Random.Range( GM.Bounds.min.x, GM.Bounds.max.x );
+                var zRandom = Random.Range( GM.Bounds.min.z, GM.Bounds.max.z );
+                GM.InstantiateNode(
+                    GM.NodePrefab,
+                    player,
+                    new Vector3( xRandom, 0f, zRandom ),
+                    Quaternion.Euler( 0f, Random.Range( 0f, 360f ), 0f )
+                );
+
+            } );
     }
 }

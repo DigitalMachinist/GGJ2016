@@ -87,4 +87,9 @@ public class Node : MonoBehaviour
         Level++;
         Grew.Invoke( this );
     }
+
+    public void UpdateMaterialColour()
+    {
+        GetComponent<Renderer>().material.color = Colour;
+    }
 }

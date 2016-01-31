@@ -7,6 +7,7 @@ public class Player : MonoBehaviour
     public bool IsEnabled = false;
     public bool IsReady = false;
     public int Number = 1;
+    public int Energy = 0;
     public Color Colour = Color.black;
     public Xbox360Gamepad Gamepad;
     public Node SelectedNode;
