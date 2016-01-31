@@ -56,6 +56,8 @@ public static class NodeActionFactory
         selectionFilters
             .ForEach( behaviour => action.SelectionFilters.Add( behaviour ) );
 
+        action.name = action.ToString();
+
         return action;
     }
 
@@ -64,37 +66,13 @@ public static class NodeActionFactory
         throw new NotImplementedException();
     }
 
-    public static NodeAction CreateNode()
+    public static CreateNodeAction CreateNode()
     {
-        return GetAction(
-            GameManager.Instance.ActionPrefab,
-            0f,
-            10f,
-            0f,
-            0f,
-            100, // Energy cost
-            0,
-            new List<NodeBehaviour>()
-            {
-                new CreateNodeBehaviour()
-            }
-        );
+        return (CreateNodeAction)Object.Instantiate( GameManager.Instance.CreateNodeActionPrefab );
     }
 
-    public static NodeAction Grow()
+    public static GrowAction Grow()
     {
-        return GetAction(
-            GameManager.Instance.ActionPrefab,
-            0f,
-            10f,
-            0f,
-            0f,
-            100, // Energy cost
-            0,
-            new List<NodeBehaviour>()
-            {
-                new GrowBehaviour()
-            }
-        );
+        return (GrowAction)Object.Instantiate( GameManager.Instance.GrowActionPrefab );
     }
 }

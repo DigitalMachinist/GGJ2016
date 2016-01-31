@@ -27,7 +27,7 @@ public class Node : MonoBehaviour
     public ActionEvent ActionDeselected;
 
 
-    public List<NodeAction> Actions { get; private set; }
+    public Dictionary<string, NodeAction> Actions { get; private set; }
     public GameManager GM { get; private set; }
     public ColorSampler Sampler { get; private set; }
     public IEnumerable<Node> Selection { get; private set; }
@@ -60,15 +60,14 @@ public class Node : MonoBehaviour
     {
         GM = FindObjectOfType<GameManager>();
 
-        // The list of default actions includes both Grow and Create Node
-        Actions = new List<NodeAction>()
-        {
-            NodeActionFactory.Grow(), 
-            NodeActionFactory.CreateNode()
-        };
+        // The list of default actions includes both Grow and Create Node.
+        Actions = new Dictionary<string, NodeAction>();
+        AddAction( NodeActionFactory.CreateNode() );
+        AddAction( NodeActionFactory.Grow() );
 
         foreach ( var action in Actions )
         {
+            Debug.Log( "Node actions:" );
             Debug.Log( action );
         }
 
@@ -87,32 +86,40 @@ public class Node : MonoBehaviour
 
     public void AddAction( NodeAction action )
     {
-        Actions.Add( action );
+        Actions.Add( action.name, action );
         action.transform.parent = transform;
         action.transform.localPosition = Vector3.zero;
         action.transform.localRotation = Quaternion.identity;
         action.name = action.ToString();
+        action.Node = this;
+        action.BeganWarmup.AddListener( ActionBegun.Invoke );
     }
 
     public void ClearActions()
     {
         SelectedAction = null;
         Actions
+            .Keys
             .ToList()
-            .ForEach( action => {
-                Actions.Remove( action );
-                Destroy( action );
+            .ForEach( key => {
+                Actions[ key ].BeganWarmup.RemoveAllListeners();
+                Actions[ key ].Ended.RemoveAllListeners();
+                Destroy( Actions[ key ] );
+                Actions.Remove( key );
             } );
 
     }
 
     void SetSelectedAction( NodeAction action )
     {
+        // Show/hide the stuff that ought to be.
         if ( SelectedAction != null )
         {
+            SelectedAction.transform.FindChild( "Visuals" ).gameObject.SetActive( false );
             ActionDeselected.Invoke( SelectedAction );
         }
         SelectedAction = action;
+        SelectedAction.transform.FindChild( "Visuals" ).gameObject.SetActive( true );
 
         // Get a new selection of nodes.
         Selection = GM.Nodes;
@@ -124,14 +131,19 @@ public class Node : MonoBehaviour
         ActionSelected.Invoke( action );
     }
 
-    public void ExecuteAction( NodeAction action, bool isSimulating, bool force = false )
+    public void ExecuteAction()
     {
-        if ( !force && !Actions.Contains( action ) )
+        ExecuteAction( SelectedAction.name );
+    }
+    public void ExecuteAction( string key, bool isSimulating = false, bool force = false )
+    {
+        if ( !force && !Actions.ContainsKey( key ) )
         {
             return;
         }
 
         // Begin executing all of the node behaviour coroutines for this action concurrently.
+        var action = Actions[ key ];
         action
             .NodeBehaviours
             .ForEach( behaviour => {
@@ -139,18 +151,22 @@ public class Node : MonoBehaviour
             } );
 
         // Continue looping if simulation mode is on.
-        action.Ended.RemoveListener( RepeatSimulatedAction );
         IsSimulating = isSimulating;
+        action.Ended.RemoveListener( RepeatSimulatedAction );
         if ( isSimulating )
         {
-            GM.NextPendingNode();
             action.Ended.AddListener( RepeatSimulatedAction );
+        }
+        else
+        {
+            action.Ended.AddListener( endedAction => ReadyToAct.Invoke( this ) );
+            GM.NextPendingNode();
         }
     }
 
     void RepeatSimulatedAction( NodeAction action )
     {
-        ExecuteAction( action, true );
+        ExecuteAction( action.name, true );
     }
 
     public void Grow()

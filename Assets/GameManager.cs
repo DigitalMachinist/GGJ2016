@@ -38,7 +38,9 @@ public class GameManager : MonoBehaviour
 
     public Bounds Bounds;
     public Node NodePrefab;
-    public NodeAction ActionPrefab;
+    public NodeAction BaseActionPrefab;
+    public NodeAction CreateNodeActionPrefab;
+    public NodeAction GrowActionPrefab;
     public GameObject ColourWheelMask;
     public Cursor Cursor;
     public float GameSpeed = 1f;
@@ -52,6 +54,7 @@ public class GameManager : MonoBehaviour
     public PlayerEvent PlayerQuit;
     public PlayerEvent PlayerReady;
     public PlayerEvent PlayerNotReady;
+    public PlayerEvent PlayerTurnBegan;
     public UnityEvent RequiresAction;
     public UnityEvent ContinuePlaying;
 
@@ -307,6 +310,9 @@ public class GameManager : MonoBehaviour
 
         Players
             .ForEach( player => player.SetSelectedNode( null ) );
+        
+        PendingNodes
+            .Clear();
     }
 
     public void PrepareGameplayArea()
@@ -323,6 +329,7 @@ public class GameManager : MonoBehaviour
 
                 // Reset each player's energy.
                 player.Energy = 0;
+                player.SamplingNode = null;
 
                 // Instantiate first node randomly.
                 var xRandom = Random.Range( Bounds.min.x, Bounds.max.x );
@@ -341,13 +348,18 @@ public class GameManager : MonoBehaviour
 
     public void NextPendingNode()
     {
-        var node = PendingNodes.Dequeue();
-        if ( node == null )
+        if ( PendingNodes.Count == 0 )
         {
             ContinuePlaying.Invoke();
             return;
         }
-        PlayerTurn = node.Player;
+
+        var node = PendingNodes.Dequeue();
+        if ( PlayerTurn != node.Player )
+        {
+            PlayerTurn = node.Player;
+            PlayerTurnBegan.Invoke( PlayerTurn );
+        }
         PlayerTurn.SelectedNode = node;
     }
 }
