@@ -64,7 +64,7 @@ public static class NodeActionFactory
         throw new NotImplementedException();
     }
 
-    public static NodeAction GetCreateNodeAction()
+    public static NodeAction CreateNode()
     {
         return GetAction(
             GameManager.Instance.ActionPrefab,
@@ -76,7 +76,24 @@ public static class NodeActionFactory
             0,
             new List<NodeBehaviour>()
             {
-                BehaviourLibrary.CreateNodeBehaviour()
+                new CreateNodeBehaviour()
+            }
+        );
+    }
+
+    public static NodeAction Grow()
+    {
+        return GetAction(
+            GameManager.Instance.ActionPrefab,
+            0f,
+            10f,
+            0f,
+            0f,
+            100, // Energy cost
+            0,
+            new List<NodeBehaviour>()
+            {
+                new GrowBehaviour()
             }
         );
     }

@@ -22,7 +22,7 @@ public class ColourSelectState : GameState
         // Change the gameplay area's background
         Object.FindObjectOfType<GameplayBackground>().RandomMaterial();
 
-        // Show player select screen and move the camera to the special colour select play area.
+        // Show the colour select UI and move the camera to the colour select area.
         GameObject.FindGameObjectWithTag( "ColourSelectScreen" ).SetActive( true );
         var center = new Vector3( -80f, 0f, 45f );
         GM.Bounds = new Bounds( center, new Vector3( 0f, 0f, 0f ) );
@@ -58,11 +58,17 @@ public class ColourSelectState : GameState
 
     public override void OnExit()
     {
-        // Hide player select screen.
-        GameObject.FindGameObjectWithTag( "ColourSelectScreen" ).SetActive( true );
+        // Hide the colour select UI.
+        GameObject.FindGameObjectWithTag( "ColourSelectScreen" ).SetActive( false );
+
+        // Show the gameplay UI and move the camera to the gameplay area.
+        GameObject.FindGameObjectWithTag( "GameplayScreen" ).SetActive( true );
+        var center = new Vector3( 80f, 0f, 45f );
+        GM.Bounds = new Bounds( center, new Vector3( 106f, 0f, 60f ) );
+        GM.Cursor.transform.position = center;
 
         // Prepare the gameplay area for the battle!
-        PrepareGameplayArea();
+        GM.PrepareGameplayArea();
 
         // Clear all A, B and Start button controls for all players.
         GM
@@ -132,8 +138,8 @@ public class ColourSelectState : GameState
         // nodes will be cleaned up as soon as play starts anyway, so these will disappear.
         var nodesContainer = GameObject.FindGameObjectWithTag( "NodesContainer" );
         centralNode.transform.parent = nodesContainer.transform;
-        //GM.Nodes.Add( centralNode );
         centralNode.Player.SetSelectedNode( centralNode );
+        GM.Nodes.Add( centralNode );
 
         // Begin the process of creating a node that will sample the colour wheel.
         player.SamplingNode = GM.StartPlaceNode( centralNode );
@@ -199,33 +205,5 @@ public class ColourSelectState : GameState
         // Pressing B indicates that the player is no longer ready and wants to choose colour again.
         player.Gamepad.BButton.Pressed.RemoveAllListeners();
         player.Gamepad.BButton.Pressed.AddListener( () => GM.NotReadyPlayer( player ) );
-    }
-
-    void PrepareGameplayArea()
-    {
-        // Clear all of the nodes we just created so we start fresh.
-        GM.ClearAllNodes();
-
-        // Instantiate players' first nodes randomly so they come up in the turn order randomly.
-        GM
-            .ReadyPlayers
-            //.OrderBy( player => Guid.NewGuid() ) 
-            .ToList()
-            .ForEach( player => {
-
-                // Reset each player's energy.
-                player.Energy = 0;
-
-                // Instantiate first node randomly.
-                var xRandom = Random.Range( GM.Bounds.min.x, GM.Bounds.max.x );
-                var zRandom = Random.Range( GM.Bounds.min.z, GM.Bounds.max.z );
-                GM.InstantiateNode(
-                    GM.NodePrefab,
-                    player,
-                    new Vector3( xRandom, 0f, zRandom ),
-                    Quaternion.Euler( 0f, Random.Range( 0f, 360f ), 0f )
-                );
-
-            } );
     }
 }

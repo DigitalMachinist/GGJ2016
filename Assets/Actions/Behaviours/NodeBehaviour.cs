@@ -21,12 +21,12 @@ public class NodeBehaviour : ActionBehaviour
     // 3) The duration of the action (including delays and duration).
     // 4) Whether or not this is a simulation.
     // Returns: IEnumerator
-    public Func<NodeAction, IEnumerable<Node>, float, bool, IEnumerator> Behaviour;
+    public Func<NodeAction, IEnumerable<Node>, bool, IEnumerator> Behaviour;
 
     public NodeBehaviour( 
         NodeBehaviourType type, 
         string descriptor, 
-        Func<NodeAction, IEnumerable<Node>, float, bool, IEnumerator> behaviour = null
+        Func<NodeAction, IEnumerable<Node>, bool, IEnumerator> behaviour = null
     )
     {
         GetsFinalWord = false;

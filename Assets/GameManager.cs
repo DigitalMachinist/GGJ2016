@@ -52,6 +52,8 @@ public class GameManager : MonoBehaviour
     public PlayerEvent PlayerQuit;
     public PlayerEvent PlayerReady;
     public PlayerEvent PlayerNotReady;
+    public UnityEvent RequiresAction;
+    public UnityEvent ContinuePlaying;
 
     public ColourEffect ColourEffect { get; private set; }
     public List<Node> Nodes { get; private set; }
@@ -67,6 +69,10 @@ public class GameManager : MonoBehaviour
     public IEnumerable<Victory> EnabledVictories
     {
         get { return Victories.Where( victory => victory.IsEnabled ); }
+    }
+    public bool HasPendingNodes
+    {
+        get { return ( PendingNodes.Count > 0 ); }
     }
     public Player Player1
     {
@@ -251,7 +257,6 @@ public class GameManager : MonoBehaviour
 
         // Listen for the node's events.
         node.ReadyToAct.AddListener( readyNode => PendingNodes.Enqueue( node ) );
-        node.ActionBegun.AddListener( action => PendingNodes.Dequeue() );
 
         return node;
     }
@@ -299,5 +304,50 @@ public class GameManager : MonoBehaviour
                 Nodes.Remove( node );
                 Destroy( node.gameObject );
             } );
+
+        Players
+            .ForEach( player => player.SetSelectedNode( null ) );
+    }
+
+    public void PrepareGameplayArea()
+    {
+        // Clear all of the nodes we just created so we start fresh.
+        ClearAllNodes();
+
+        // Instantiate players' first nodes randomly so they come up in the turn order randomly.
+        ReadyPlayers
+            .OrderBy( player => -player.Number )
+            //.OrderBy( player => Guid.NewGuid() ) // Random ordering?
+            .ToList()
+            .ForEach( player => {
+
+                // Reset each player's energy.
+                player.Energy = 0;
+
+                // Instantiate first node randomly.
+                var xRandom = Random.Range( Bounds.min.x, Bounds.max.x );
+                var zRandom = Random.Range( Bounds.min.z, Bounds.max.z );
+                FinalizePlaceNode(
+                    InstantiateNode(
+                        NodePrefab,
+                        player,
+                        new Vector3( xRandom, 0f, zRandom ),
+                        Quaternion.Euler( 0f, Random.Range( 0f, 360f ), 0f )
+                    )
+                );
+
+            } );
+    }
+
+    public void NextPendingNode()
+    {
+        var node = PendingNodes.Dequeue();
+        if ( node == null )
+        {
+            ContinuePlaying.Invoke();
+            return;
+        }
+        PlayerTurn = node.Player;
+        PlayerTurn.SelectedNode = node;
     }
 }

@@ -18,12 +18,12 @@ public class CollisionBehaviour : ActionBehaviour
     // 2) The physics collision object.
     // 3) Whether or not this is a simulation.
     // Returns: IEnumerator
-    public Func<NodeAction, Collision, float, bool, IEnumerator> Behaviour;
+    public Func<NodeAction, Collision, bool, IEnumerator> Behaviour;
 
     public CollisionBehaviour(
         CollisionBehaviourType type,
         string descriptor,
-        Func<NodeAction, Collision, float, bool, IEnumerator> behaviour = null
+        Func<NodeAction, Collision, bool, IEnumerator> behaviour = null
     )
     {
         GetsFinalWord = false;

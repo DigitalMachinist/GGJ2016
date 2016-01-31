@@ -14,21 +14,21 @@ public class PlayingState : GameState
         Time.timeScale = GameManager.Instance.GameSpeed;
         GM.Cursor.enabled = true;
 
-        // Set the bounds of the play area.
-        GM.Bounds = new Bounds( new Vector3( 80f, 0f, 47f ), new Vector3( 106f, 0f, 60f ) );
+        GM.RequiresAction.AddListener( () => GM.ChangeState( GMState.Action ) );
     }
 
     public override void OnExit()
     {
         GM.UnpauseState = Type;
+
+        GM.RequiresAction.RemoveAllListeners();
     }
 
     public override void Update()
     {
-        // Change state once the GM have queued up 1 or more nodes to act.
-        if ( GM.PendingNodes.Count > 0 )
+        if ( GM.HasPendingNodes )
         {
-            GM.ChangeState( GMState.Action );
+            GM.RequiresAction.Invoke();
         }
     }
 }
