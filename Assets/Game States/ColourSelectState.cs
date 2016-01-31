@@ -209,7 +209,7 @@ public class ColourSelectState : GameState
         // Instantiate players' first nodes randomly so they come up in the turn order randomly.
         GM
             .ReadyPlayers
-            .OrderBy( player => Guid.NewGuid() ) 
+            //.OrderBy( player => Guid.NewGuid() ) 
             .ToList()
             .ForEach( player => {
 

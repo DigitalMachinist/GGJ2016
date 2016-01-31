@@ -115,7 +115,7 @@ public class GameManager : MonoBehaviour
             { GMState.MainMenu, new MainMenuState( this, GMState.MainMenu ) },
             { GMState.ColourSelect, new ColourSelectState( this, GMState.ColourSelect ) },
             { GMState.Playing, new PlayingState( this, GMState.Playing ) },
-            { GMState.Action, new PlayerTurnState( this, GMState.Action ) },
+            { GMState.Action, new ActionState( this, GMState.Action ) },
             { GMState.Victory, new VictoryState( this, GMState.Victory ) },
             { GMState.GamepadDisconnected, new GamepadDisconnectedState( this, GMState.GamepadDisconnected ) },
             { GMState.Paused, new PausedState( this, GMState.Paused ) }
@@ -248,6 +248,10 @@ public class GameManager : MonoBehaviour
 
         // This may become part of the Node's animation controller eventually.
         node.GetComponent<Renderer>().material.color = player.Colour;
+
+        // Listen for the node's events.
+        node.ReadyToAct.AddListener( readyNode => PendingNodes.Enqueue( node ) );
+        node.ActionBegun.AddListener( action => PendingNodes.Dequeue() );
 
         return node;
     }

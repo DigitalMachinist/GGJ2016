@@ -25,6 +25,10 @@ public class PlayingState : GameState
 
     public override void Update()
     {
-
+        // Change state once the GM have queued up 1 or more nodes to act.
+        if ( GM.PendingNodes.Count > 0 )
+        {
+            GM.ChangeState( GMState.Action );
+        }
     }
 }

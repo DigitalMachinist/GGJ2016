@@ -20,6 +20,7 @@ public class Node : MonoBehaviour
     public NodeCollisionEvent Collision; // TODO
     public NodeEvent ReadyToAct; // TODO
     public NodeEvent Grew;
+    public ActionEvent ActionBegun;
     public ActionEvent ActionSelected;
     public ActionEvent ActionDeselected;
 
@@ -44,6 +45,16 @@ public class Node : MonoBehaviour
     {
         Sampler = GetComponent<ColorSampler>();
         Created.Invoke( this );
+    }
+
+    void Start()
+    {
+        ReadyToAct.Invoke( this );
+    }
+
+    void Update()
+    {
+
     }
 
     void OnDestroy()

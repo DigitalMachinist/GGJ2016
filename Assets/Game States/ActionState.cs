@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-public class PlayerTurnState : GameState
+public class ActionState : GameState
 {
-    public PlayerTurnState( GameManager gm, GMState type ) : base( gm, type )
+    public ActionState( GameManager gm, GMState type ) : base( gm, type )
     {
 
     }
