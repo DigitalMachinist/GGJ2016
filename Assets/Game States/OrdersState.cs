@@ -1,24 +1,28 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
-public class ActionState : GameState
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
+
+public class OrdersState : GMState
 {
     Player controllingPlayer;
 
-    public ActionState( GameManager gm, GMState type ) : base( gm, type )
+    public override void OnStateEnter( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
+        base.OnStateEnter( animator, stateInfo, layerIndex );
+        
+        Debug.Log( "STOPPED FOR ORDERS" );
 
-    }
-
-    public override void OnEntry()
-    {
-        Debug.Log( "STOPPED FOR PLAYER TURN" );
-
-        Time.timeScale = 0f;
+        //Time.timeScale = 0f;
         GM.Cursor.enabled = true;
 
         // Listen for the completion of all pending nodes' actions.
-        GM.ContinuePlaying.AddListener( () => GM.ChangeState( GMState.Playing ) );
+        //GM.ContinuePlaying.AddListener( () => GM.ChangeState( GMState.Playing ) );
 
         // Listen for any further nodes that might need to take their turns now.
         GM.PlayerTurnBegan.AddListener( player => {
@@ -33,19 +37,15 @@ public class ActionState : GameState
         SetInControl( GM.PlayerTurn );
     }
 
-    public override void OnExit()
+    public override void OnControlEnter( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
-        GM.UnpauseState = Type;
-
-        // Revoke control from the player whose node is acting.
-        SetNoControl( GM.PlayerTurn );
-
-        GM.ContinuePlaying.RemoveAllListeners();
-        GM.RequiresAction.RemoveAllListeners();
+        base.OnControlEnter( animator, stateInfo, layerIndex );
     }
 
-    public override void Update()
+    public override void OnStateUpdate( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
+        base.OnStateUpdate( animator, stateInfo, layerIndex );
+
         // 
         GM
             .ReadyPlayers
@@ -57,11 +57,9 @@ public class ActionState : GameState
                     return;
                 }
 
-                Vector3 direction = new Vector3(
-                    player.Gamepad.GetAxis( Xbox360GamepadAxis.LAnalogX ),
-                    0f,
-                    player.Gamepad.GetAxis( Xbox360GamepadAxis.LAnalogY )
-                );
+                var x = player.Gamepad.GetAxis( Xbox360GamepadAxis.LAnalogX );
+                var y = player.Gamepad.GetAxis( Xbox360GamepadAxis.LAnalogY );
+                Vector3 direction = new Vector3( x, 0f, y );
                 if ( direction == Vector3.zero )
                 {
                     return;
@@ -72,6 +70,29 @@ public class ActionState : GameState
                 nodeTransform.LookAt( nodeTransform.position + direction, Vector3.up );
 
             } );
+    }
+
+    public override void OnControlUpdate( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
+    {
+        base.OnControlUpdate( animator, stateInfo, layerIndex );
+    }
+
+    public override void OnControlExit( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
+    {
+        base.OnControlExit( animator, stateInfo, layerIndex );
+    }
+
+    public override void OnStateExit( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
+    {
+        base.OnStateExit( animator, stateInfo, layerIndex );
+
+        //GM.UnpauseState = Type;
+
+        // Revoke control from the player whose node is acting.
+        SetNoControl( GM.PlayerTurn );
+
+        GM.ContinuePlaying.RemoveAllListeners();
+        GM.RequiresAction.RemoveAllListeners();
     }
 
     void SetInControl( Player player )

@@ -1,32 +1,51 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
-public class MainMenuState : GameState
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
+
+public class MainMenuState : GMState
 {
-    public MainMenuState( GameManager gm, GMState type ) : base( gm, type )
+    public override void OnStateEnter( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
-        // Do nothing.
-    }
+        base.OnStateEnter( animator, stateInfo, layerIndex );
 
-    public override void OnEntry()
-    {
         Debug.Log( "MAIN MENU SCREEN" );
 
         Time.timeScale = 0f;
         GM.Cursor.enabled = false;
 
-        // Show main menu screen.
-        // TODO
+        // TODO Show main menu UI canvas
     }
 
-    public override void OnExit()
+    public override void OnControlEnter( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
-        // Hide main menu screen.
-        // TODO
+        base.OnControlEnter( animator, stateInfo, layerIndex );
     }
 
-    public override void Update()
+    public override void OnStateUpdate( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
-        
+        base.OnStateUpdate( animator, stateInfo, layerIndex );
+    }
+
+    public override void OnControlUpdate( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
+    {
+        base.OnControlUpdate( animator, stateInfo, layerIndex );
+    }
+
+    public override void OnControlExit( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
+    {
+        base.OnControlExit( animator, stateInfo, layerIndex );
+    }
+
+    public override void OnStateExit( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
+    {
+        base.OnStateExit( animator, stateInfo, layerIndex );
+
+        // TODO Hide main menu UI canvas
     }
 }

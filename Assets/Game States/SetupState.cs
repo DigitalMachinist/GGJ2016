@@ -1,23 +1,27 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-public class ColourSelectState : GameState
+public class SetupState : GMState
 {
-    public ColourSelectState( GameManager gm, GMState type ) : base( gm, type )
+    public override void OnStateEnter( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
-        // Do nothing.
-    }
+        base.OnStateEnter( animator, stateInfo, layerIndex );
 
-    public override void OnEntry()
-    {
         Debug.Log( "COLOUR SELECT SCREEN" );
+        Debug.Log( stateInfo );
+        Debug.Log( animator.GetNextAnimatorStateInfo( layerIndex ) );
 
         Time.timeScale = 0f;
         GM.Cursor.enabled = false;
+
+        // TODO Show colour select UI canvas
 
         // Change the gameplay area's background
         Object.FindObjectOfType<GameplayBackground>().RandomMaterial();
@@ -56,38 +60,15 @@ public class ColourSelectState : GameState
             } );
     }
 
-    public override void OnExit()
+    public override void OnControlEnter( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
-        // Hide the colour select UI.
-        GameObject.FindGameObjectWithTag( "ColourSelectScreen" ).SetActive( false );
-
-        // Show the gameplay UI and move the camera to the gameplay area.
-        GameObject.FindGameObjectWithTag( "GameplayScreen" ).SetActive( true );
-        var center = new Vector3( 80f, 0f, 45f );
-        GM.Bounds = new Bounds( center, new Vector3( 106f, 0f, 60f ) );
-        GM.Cursor.transform.position = center;
-
-        // Prepare the gameplay area for the battle!
-        GM.PrepareGameplayArea();
-
-        // Clear all A, B and Start button controls for all players.
-        GM
-            .Players
-            .ForEach( player => {
-                player.Gamepad.AButton.Pressed.RemoveAllListeners();
-                player.Gamepad.BButton.Pressed.RemoveAllListeners();
-                player.Gamepad.StartButton.Pressed.RemoveAllListeners();
-            } );
-
-        // Stop listening for all player events.
-        GM.PlayerJoined.RemoveAllListeners();
-        GM.PlayerQuit.RemoveAllListeners();
-        GM.PlayerReady.RemoveAllListeners();
-        GM.PlayerNotReady.RemoveAllListeners();
+        base.OnControlEnter( animator, stateInfo, layerIndex );
     }
 
-    public override void Update()
+    public override void OnStateUpdate( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
+        base.OnStateUpdate( animator, stateInfo, layerIndex );
+
         // Allow enabled joined players (that aren't yet ready) to rotate their center nodes to 
         // pick colour.
         GM
@@ -95,7 +76,7 @@ public class ColourSelectState : GameState
             .Where( player => !player.IsReady )
             .ToList()
             .ForEach( player => {
-                
+
                 if ( player.SelectedNode == null || player.SamplingNode == null )
                 {
                     return;
@@ -123,6 +104,50 @@ public class ColourSelectState : GameState
                 samplingNode.UpdateMaterialColour();
 
             } );
+    }
+
+    public override void OnControlUpdate( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
+    {
+        base.OnControlUpdate( animator, stateInfo, layerIndex );
+    }
+
+    public override void OnControlExit( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
+    {
+        base.OnControlExit( animator, stateInfo, layerIndex );
+    }
+
+    public override void OnStateExit( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
+    {
+        base.OnStateExit( animator, stateInfo, layerIndex );
+
+        // TODO Hide colour select UI canvas
+
+        // Hide the colour select UI.
+        GameObject.FindGameObjectWithTag( "ColourSelectScreen" ).SetActive( false );
+
+        // Show the gameplay UI and move the camera to the gameplay area.
+        GameObject.FindGameObjectWithTag( "GameplayScreen" ).SetActive( true );
+        var center = new Vector3( 80f, 0f, 45f );
+        GM.Bounds = new Bounds( center, new Vector3( 106f, 0f, 60f ) );
+        GM.Cursor.transform.position = center;
+
+        // Prepare the gameplay area for the battle!
+        GM.PrepareGameplayArea();
+
+        // Clear all A, B and Start button controls for all players.
+        GM
+            .Players
+            .ForEach( player => {
+                player.Gamepad.AButton.Pressed.RemoveAllListeners();
+                player.Gamepad.BButton.Pressed.RemoveAllListeners();
+                player.Gamepad.StartButton.Pressed.RemoveAllListeners();
+            } );
+
+        // Stop listening for all player events.
+        GM.PlayerJoined.RemoveAllListeners();
+        GM.PlayerQuit.RemoveAllListeners();
+        GM.PlayerReady.RemoveAllListeners();
+        GM.PlayerNotReady.RemoveAllListeners();
     }
 
     void OnPlayerJoined( Player player )

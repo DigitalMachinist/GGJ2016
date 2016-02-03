@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Collections;﻿
+using System.Collections.Generic;﻿
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -8,16 +8,13 @@ using UnityEngine.Events;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-public class PausedState : GMState
+public class CreditsState : GMState
 {
     public override void OnStateEnter( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
         base.OnStateEnter( animator, stateInfo, layerIndex );
 
-        Debug.Log( "PAUSED" );
-
-        Time.timeScale = 0f;
-        GM.Cursor.enabled = false;
+        // TODO Show credits UI canvas
     }
 
     public override void OnControlEnter( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
@@ -43,5 +40,7 @@ public class PausedState : GMState
     public override void OnStateExit( Animator animator, AnimatorStateInfo stateInfo, int layerIndex )
     {
         base.OnStateExit( animator, stateInfo, layerIndex );
+
+        // TODO Hide credits UI canvas
     }
 }

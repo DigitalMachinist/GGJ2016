@@ -6,18 +6,18 @@ using UnityEngine.Events;
 
 using Random = UnityEngine.Random;
 
-public enum GMState
-{
-    NULL,
-    Title,
-    MainMenu, 
-    ColourSelect,
-    Playing,
-    Action,
-    Victory,
-    GamepadDisconnected,
-    Paused
-}
+//public enum GMState
+//{
+//    NULL,
+//    Title,
+//    MainMenu, 
+//    ColourSelect,
+//    Playing,
+//    Action,
+//    Victory,
+//    GamepadDisconnected,
+//    Paused
+//}
 
 [Serializable] public class PlayerEvent : UnityEvent<Player> { }
 
@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour
     public GameObject ColourWheelMask;
     public Cursor Cursor;
     public float GameSpeed = 1f;
-    public GMState UnpauseState = GMState.Playing;
+    //public GMState UnpauseState = GMState.Playing;
     public Player PlayerTurn;
     public List<Player> Players;
 
@@ -63,7 +63,7 @@ public class GameManager : MonoBehaviour
     public List<Node> Nodes { get; private set; }
     public Queue<Node> PendingNodes { get; private set; }
     public GMState State { get; private set; }
-    public Dictionary<GMState, GameState> StatesMap { get; private set; }
+    public Dictionary<GMState, State> StatesMap { get; private set; }
     public IEnumerable<Victory> Victories { get; private set; }
 
     public IEnumerable<Player> EnabledPlayers
@@ -117,19 +117,19 @@ public class GameManager : MonoBehaviour
         Nodes = new List<Node>();
 
         // Set up a map of GMState enum values to state objects.
-        State = GMState.NULL;
-        StatesMap = new Dictionary<GMState, GameState>()
-        {
-            { GMState.NULL, new NullState( this, GMState.NULL ) },
-            { GMState.Title, new TitleState( this, GMState.Title ) },
-            { GMState.MainMenu, new MainMenuState( this, GMState.MainMenu ) },
-            { GMState.ColourSelect, new ColourSelectState( this, GMState.ColourSelect ) },
-            { GMState.Playing, new PlayingState( this, GMState.Playing ) },
-            { GMState.Action, new ActionState( this, GMState.Action ) },
-            { GMState.Victory, new VictoryState( this, GMState.Victory ) },
-            { GMState.GamepadDisconnected, new GamepadDisconnectedState( this, GMState.GamepadDisconnected ) },
-            { GMState.Paused, new PausedState( this, GMState.Paused ) }
-        };
+        //State = GMState.NULL;
+        //StatesMap = new Dictionary<GMState, State>()
+        //{
+        //    //{ GMState.NULL, new NullState( this, GMState.NULL ) },
+        //    //{ GMState.Title, new TitleState( this, GMState.Title ) },
+        //    //{ GMState.MainMenu, new MainMenuState( this, GMState.MainMenu ) },
+        //    //{ GMState.ColourSelect, new ColourSelectState( this, GMState.ColourSelect ) },
+        //    //{ GMState.Playing, new PlayingState( this, GMState.Playing ) },
+        //    //{ GMState.Action, new ActionState( this, GMState.Action ) },
+        //    //{ GMState.Victory, new VictoryState( this, GMState.Victory ) },
+        //    //{ GMState.GamepadDisconnected, new GamepadDisconnectedState( this, GMState.GamepadDisconnected ) },
+        //    //{ GMState.Paused, new PausedState( this, GMState.Paused ) }
+        //};
     }
 
     void Start()
@@ -148,14 +148,14 @@ public class GameManager : MonoBehaviour
         Victories = new List<Victory>( transform.GetComponentsInChildren<Victory>() );
 
         // Start up and tell the rest of the game that all of the GM resources are ready!
-        ChangeState( GMState.Title );
+        //ChangeState( GMState.Title );
         Ready.Resolve();
     }
 
     void Update()
     {
         // Run the current state's update function.
-        StatesMap[ State ].Update();
+        //StatesMap[ State ].Update();
     }
 
     public void ChangeState( GMState newState )
@@ -165,14 +165,14 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        StatesMap[ State ].OnExit();
+        //StatesMap[ State ].OnExit();
         State = newState;
-        StatesMap[ State ].OnEntry();
+        //StatesMap[ State ].OnEntry();
     }
 
     public void ChangeToMainMenu()
     {
-        ChangeState( GMState.MainMenu );
+        //ChangeState( GMState.MainMenu );
     }
 
     public void ChangeToPlaying()
@@ -180,7 +180,7 @@ public class GameManager : MonoBehaviour
         // The game can only be played with 2 or more players.
         if ( ReadyPlayers.Count() >= 2 )
         {
-            ChangeState( GMState.Playing );
+            //ChangeState( GMState.Playing );
         }
     }
 
