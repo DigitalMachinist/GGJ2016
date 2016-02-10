@@ -27,20 +27,22 @@ public class Player : MonoBehaviour
         get { return GM.Nodes.Where( node => node.Player == this ); }
     }
 
-    void Awake()
-    {
-        // Player controls.
-        Gamepad.LeftTrigger.Pressed.AddListener( PreviousNode );
-        Gamepad.RightTrigger.Pressed.AddListener( NextNode );
-
-        // Debug controls.
-        Gamepad.LeftBumper.Pressed.AddListener( CreateNode );
-        Gamepad.RightBumper.Pressed.AddListener( SkipTurn );
-    }
-
     void Start()
     {
         GM = FindObjectOfType<GameManager>();
+
+        if ( Gamepad == null )
+        {
+            Gamepad = transform.GetComponentInChildren<Xbox360Gamepad>();
+        }
+
+        // Player controls.
+        Gamepad.LeftTriggerButton.Pressed.AddListener( PreviousNode );
+        Gamepad.RightTriggerButton.Pressed.AddListener( NextNode );
+
+        // Debug controls.
+        Gamepad.LeftBumperButton.Pressed.AddListener( CreateNode );
+        Gamepad.RightBumperButton.Pressed.AddListener( SkipTurn );
     }
 
     void CreateNode()

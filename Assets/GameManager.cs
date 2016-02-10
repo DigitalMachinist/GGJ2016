@@ -62,8 +62,8 @@ public class GameManager : MonoBehaviour
     public ColourEffect ColourEffect { get; private set; }
     public List<Node> Nodes { get; private set; }
     public Queue<Node> PendingNodes { get; private set; }
-    public GMState State { get; private set; }
-    public Dictionary<GMState, State> StatesMap { get; private set; }
+    //public GMStateBehaviour State { get; private set; }
+    //public Dictionary<GMStateBehaviour, StateProvider> StatesMap { get; private set; }
     public IEnumerable<Victory> Victories { get; private set; }
 
     public IEnumerable<Player> EnabledPlayers
@@ -158,17 +158,17 @@ public class GameManager : MonoBehaviour
         //StatesMap[ State ].Update();
     }
 
-    public void ChangeState( GMState newState )
-    {
-        if ( newState == State )
-        {
-            return;
-        }
+    //public void ChangeState( GMStateBehaviour newState )
+    //{
+    //    if ( newState == State )
+    //    {
+    //        return;
+    //    }
 
-        //StatesMap[ State ].OnExit();
-        State = newState;
-        //StatesMap[ State ].OnEntry();
-    }
+    //    //StatesMap[ State ].OnExit();
+    //    State = newState;
+    //    //StatesMap[ State ].OnEntry();
+    //}
 
     public void ChangeToMainMenu()
     {

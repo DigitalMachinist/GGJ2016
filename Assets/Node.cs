@@ -29,12 +29,12 @@ public class Node : MonoBehaviour
 
     public Dictionary<string, NodeAction> Actions { get; private set; }
     public GameManager GM { get; private set; }
-    public ColorSampler Sampler { get; private set; }
+    public ColorPicker ColourPicker { get; private set; }
     public IEnumerable<Node> Selection { get; private set; }
 
     public Color Colour
     {
-        get { return Sampler.SampledColor; }
+        get { return ColourPicker.Color; }
     }
     public bool HasSelectedAction
     {
@@ -51,7 +51,7 @@ public class Node : MonoBehaviour
 
     void Awake()
     {
-        Sampler = GetComponent<ColorSampler>();
+        ColourPicker = GetComponent<ColorPicker>();
         Selection = new List<Node>();
         Created.Invoke( this );
     }
